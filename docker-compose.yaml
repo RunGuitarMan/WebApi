@@ -1,9 +1,10 @@
+version: '3.8'
+
 services:
   # --- [POSTGRES MASTER] ---
   postgres_master:
     container_name: webapi-postgres-master
     image: postgres:17
-    # Важно: НЕ запускаем под root, а используем встроенный user (postgres).
     environment:
       POSTGRES_USER: example_user
       POSTGRES_PASSWORD: example_password
@@ -14,11 +15,8 @@ services:
       - app-network
     restart: always
     volumes:
-      # Храним данные в Docker volume
       - postgres_master_data:/var/lib/postgresql/data
-      # Монтируем наш скрипт инициализации (настроек репликации) 
       - ./init-master.sh:/docker-entrypoint-initdb.d/init-master.sh
-      # При желании можно добавить SQL-скрипты:
       - ./init-master.sql:/docker-entrypoint-initdb.d/init-master.sql
 
   # --- [POSTGRES REPLICA] ---
@@ -41,6 +39,63 @@ services:
       - ./init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh
       - ./init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
 
+  # --- [POSTGRES EXPORTER for MASTER] ---
+  postgres_exporter:
+    container_name: webapi-postgres-exporter
+    image: wrouesnel/postgres_exporter:latest
+    environment:
+      DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_master:5432/example_db?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres_master
+    networks:
+      - app-network
+    restart: always
+
+  # --- [POSTGRES EXPORTER for REPLICA] ---
+  postgres_replica_exporter:
+    container_name: webapi-postgres-replica-exporter
+    image: wrouesnel/postgres_exporter:latest
+    environment:
+      DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_replica:5432/example_db?sslmode=disable"
+    ports:
+      - "9188:9187"
+    depends_on:
+      - postgres_replica
+    networks:
+      - app-network
+    restart: always
+
+  # --- [KAFKA EXPORTER] ---
+  kafka_exporter:
+    container_name: webapi-kafka-exporter
+    image: danielqsj/kafka-exporter:latest
+    # Указываем только аргумент, без полного пути к бинарю
+    command: ["--kafka.server=kafka:9093"]
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+    networks:
+      - app-network
+    restart: always
+
+  # --- [REDIS EXPORTER] ---
+  redis_exporter:
+    container_name: webapi-redis-exporter
+    image: oliver006/redis_exporter:latest
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      # REDIS_PASSWORD: "some_password"
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    restart: always
+
   # --- [ZOOKEEPER] ---
   zookeeper:
     container_name: webapi-zookeeper
@@ -56,17 +111,13 @@ services:
 
   # --- [KAFKA] ---
   kafka:
-    image: wurstmeister/kafka:latest
     container_name: webapi-kafka
+    image: wurstmeister/kafka:latest
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  
-      # Вместо INSIDE://kafka:9093 — используем PLAINTEXT (стандарт)
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
-      # Можно добавить (но не обязательно, так как имя PLAINTEXT уже известно Kafka)
-      # KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
     ports:
       - "9093:9093"
     depends_on:
@@ -94,10 +145,10 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9093"
     ports:
       - "8080:8080"
-    networks:
-      - app-network
     depends_on:
       - kafka
+    networks:
+      - app-network
     restart: always
 
   # --- [PROMETHEUS] ---
