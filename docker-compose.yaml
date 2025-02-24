@@ -1,0 +1,135 @@
+services:
+  # --- [POSTGRES MASTER] ---
+  postgres_master:
+    container_name: webapi-postgres-master
+    image: postgres:17
+    # Важно: НЕ запускаем под root, а используем встроенный user (postgres).
+    environment:
+      POSTGRES_USER: example_user
+      POSTGRES_PASSWORD: example_password
+      POSTGRES_DB: example_db
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    restart: always
+    volumes:
+      # Храним данные в Docker volume
+      - postgres_master_data:/var/lib/postgresql/data
+      # Монтируем наш скрипт инициализации (настроек репликации) 
+      - ./init-master.sh:/docker-entrypoint-initdb.d/init-master.sh
+      # При желании можно добавить SQL-скрипты:
+      - ./init-master.sql:/docker-entrypoint-initdb.d/init-master.sql
+
+  # --- [POSTGRES REPLICA] ---
+  postgres_replica:
+    container_name: webapi-postgres-replica
+    image: postgres:17
+    environment:
+      POSTGRES_USER: example_user
+      POSTGRES_PASSWORD: example_password
+      POSTGRES_DB: example_db
+    depends_on:
+      - postgres_master
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+    restart: always
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+      - ./init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh
+      - ./init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
+
+  # --- [ZOOKEEPER] ---
+  zookeeper:
+    container_name: webapi-zookeeper
+    image: wurstmeister/zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app-network
+    restart: always
+
+  # --- [KAFKA] ---
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: webapi-kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  
+      # Вместо INSIDE://kafka:9093 — используем PLAINTEXT (стандарт)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
+      # Можно добавить (но не обязательно, так как имя PLAINTEXT уже известно Kafka)
+      # KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+    ports:
+      - "9093:9093"
+    depends_on:
+      - zookeeper
+    networks:
+      - app-network
+    restart: always
+
+  # --- [REDIS] ---
+  redis:
+    container_name: webapi-redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    restart: always
+
+  # --- [KAFKA UI] ---
+  kafka-ui:
+    container_name: webapi-kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9093"
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - kafka
+    restart: always
+
+  # --- [PROMETHEUS] ---
+  prometheus:
+    container_name: webapi-prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+    restart: always
+
+  # --- [GRAFANA] ---
+  grafana:
+    container_name: webapi-grafana
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - prometheus
+    restart: always
+
+volumes:
+  postgres_master_data:
+  postgres_replica_data:
+
+networks:
+  app-network:
+    driver: bridge
