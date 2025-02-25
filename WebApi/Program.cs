@@ -1,18 +1,31 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
-        .AddService(serviceName: "My App", serviceNamespace: "localhost", serviceInstanceId: Environment.MachineName))
+        .AddService(serviceName: "MyApp", serviceNamespace: "localhost", serviceInstanceId: Environment.MachineName))
     .WithMetrics(meterBuilder => meterBuilder
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
         .AddRuntimeInstrumentation()
         .AddProcessInstrumentation()
         .AddPrometheusExporter()
+    )
+    .WithTracing(tracerBuilder => tracerBuilder
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddSqlClientInstrumentation()
+        .AddSource("MyApp")
+        .AddOtlpExporter(otlpOptions =>
+        {
+            otlpOptions.Endpoint = new Uri("https://localhost:4317"); // Отправляем в OTEL-Collector
+            otlpOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+        })
     );
+
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
