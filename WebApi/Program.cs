@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 var serviceName = "MyApp";
 var jaegerEndpoint = "http://localhost:4317";
 
-// Создаем OpenTelemetry
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
         .AddService(serviceName, serviceNamespace: "localhost", serviceInstanceId: Environment.MachineName))
