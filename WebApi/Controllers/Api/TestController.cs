@@ -43,4 +43,10 @@ public class TestController : ControllerBase
         }
         return Ok("Allocated 50 MB of memory");
     }
+    
+    [HttpGet("exception")]
+    public IActionResult ThrowException()
+    {
+        throw new Exception("This is an exception");
+    }
 }

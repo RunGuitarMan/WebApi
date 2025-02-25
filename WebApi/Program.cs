@@ -4,7 +4,8 @@ using OpenTelemetry.Resources;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService("My App", serviceInstanceId: Environment.MachineName))
+    .ConfigureResource(resource => resource
+        .AddService(serviceName: "My App", serviceNamespace: "localhost", serviceInstanceId: Environment.MachineName))
     .WithMetrics(meterBuilder => meterBuilder
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
