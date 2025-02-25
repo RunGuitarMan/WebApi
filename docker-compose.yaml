@@ -175,29 +175,23 @@ services:
       - prometheus
     restart: always
 
-  # --- [Jaeger] ---
+  # --- [JAEGER 2] ---
   jaeger:
     container_name: webapi-jaeger
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/jaeger:2.3.0
+    command:
+      - "--set=receivers.otlp.protocols.http.endpoint=0.0.0.0:4318"
+      - "--set=receivers.otlp.protocols.grpc.endpoint=0.0.0.0:4317"
     ports:
-      - "16686:16686"  # UI
-      - "14250:14250"  # gRPC API (прием трейсов от OTEL-Collector)
+      - "5778:5778"    # Configurations
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+      - "14250:14250"  # Jaeger gRPC ingest
+      - "14268:14268"  # Jaeger HTTP ingest
     networks:
       - app-network
-
-  # --- [OpenTelemetry Collector] ---
-  otel-collector:
-    container_name: webapi-otel-collector
-    image: otel/opentelemetry-collector:latest
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel/config.yaml
-    command: ["--config=/etc/otel/config.yaml"]
-    ports:
-      - "4317:4317"  # OTLP gRPC (прием от приложения)
-    depends_on:
-      - jaeger
-    networks:
-      - app-network
+    restart: always
 
 volumes:
   postgres_master_data:

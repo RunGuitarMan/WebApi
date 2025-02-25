@@ -1,12 +1,17 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var serviceName = "MyApp";
+var jaegerEndpoint = "http://localhost:4317"; // gRPC (лучший вариант)
+
+// Создаем OpenTelemetry
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
-        .AddService(serviceName: "MyApp", serviceNamespace: "localhost", serviceInstanceId: Environment.MachineName))
+        .AddService(serviceName, serviceNamespace: "localhost", serviceInstanceId: Environment.MachineName))
     .WithMetrics(meterBuilder => meterBuilder
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
@@ -18,13 +23,17 @@ builder.Services.AddOpenTelemetry()
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
         .AddSqlClientInstrumentation()
-        .AddSource("MyApp")
-        .AddOtlpExporter(otlpOptions =>
+        .AddSource(serviceName) // Добавляем источник
+        .AddOtlpExporter(options =>
         {
-            otlpOptions.Endpoint = new Uri("https://localhost:4317"); // Отправляем в OTEL-Collector
-            otlpOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+            options.Endpoint = new Uri(jaegerEndpoint);
+            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
         })
     );
+
+// Добавляем ActivitySource для теста
+var activitySource = new ActivitySource(serviceName);
+builder.Services.AddSingleton(activitySource);
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
