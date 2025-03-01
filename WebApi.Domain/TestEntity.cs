@@ -1,0 +1,7 @@
+﻿namespace WebApi.Domain;
+
+public class TestEntity
+{
+    public int Id { get; set; }
+    public string? Content { get; set; }
+}
