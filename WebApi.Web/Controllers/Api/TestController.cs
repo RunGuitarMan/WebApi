@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebApi.Controllers.Api;
+namespace WebApi.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/test")]
