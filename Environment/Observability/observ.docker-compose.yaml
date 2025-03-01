@@ -52,8 +52,8 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9093"
     ports:
       - "8123:8080"
-    depends_on:
-      - kafka
+#    depends_on:
+#      - kafka
     networks:
       - app-network
     restart: always
@@ -66,8 +66,8 @@ services:
     command: ["--kafka.server=kafka:9093"]
     ports:
       - "9308:9308"
-    depends_on:
-      - kafka
+#    depends_on:
+#      - kafka
     networks:
       - app-network
     restart: always
@@ -80,8 +80,8 @@ services:
       DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_master:5432/example_db?sslmode=disable"
     ports:
       - "9187:9187"
-    depends_on:
-      - postgres_master
+#    depends_on:
+#      - postgres_master
     networks:
       - app-network
     restart: always
@@ -94,8 +94,8 @@ services:
       DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_replica:5432/example_db?sslmode=disable"
     ports:
       - "9188:9187"
-    depends_on:
-      - postgres_replica
+#    depends_on:
+#      - postgres_replica
     networks:
       - app-network
     restart: always
@@ -109,8 +109,12 @@ services:
       # REDIS_PASSWORD: "some_password"
     ports:
       - "9121:9121"
-    depends_on:
-      - redis
+#    depends_on:
+#      - redis
     networks:
       - app-network
     restart: always
+
+networks:
+  app-network:
+    external: true

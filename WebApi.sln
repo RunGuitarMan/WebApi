@@ -4,7 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "WebApi\WebApi.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{C0999C96-7D59-4DEE-945B-D12BC140F506}"
 	ProjectSection(SolutionItems) = preProject
-		compose.yaml = compose.yaml
 		.dockerignore = .dockerignore
 		Dockerfile = Dockerfile
 	EndProjectSection
