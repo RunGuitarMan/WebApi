@@ -487,7 +487,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (http_route) (\n    rate(http_server_request_duration_seconds_count{http_route!=\"\", job=\"$job\", instance=\"$instance\"}[1m])\n)",
+          "expr": "sum by (http_route) (\n    rate(http_server_request_duration_seconds_count{http_route!=\"\", job=\"$job\", instance=\"$instance\"}[10s])\n)",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
