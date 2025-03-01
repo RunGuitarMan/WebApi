@@ -18,8 +18,7 @@ public class PersistenceController(ApplicationDbContext context) : ControllerBas
         }
         return Ok(entity);
     }
-
-
+    
     [HttpPost]
     public async Task<IActionResult> PostEntity(string content, CancellationToken cancellationToken)
     {
@@ -29,6 +28,7 @@ public class PersistenceController(ApplicationDbContext context) : ControllerBas
         };
         await context.TestEntities.AddAsync(entity, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        
         return CreatedAtAction(nameof(GetEntity), new { id = entity.Id }, entity);
     }
 }
