@@ -2,6 +2,6 @@
 
 public class TestEntity
 {
-    public int Id { get; set; }
-    public string? Content { get; set; }
+    public int Id { get; init; }
+    public string? Content { get; init; }
 }
