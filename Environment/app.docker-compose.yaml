@@ -49,6 +49,8 @@ services:
     networks:
       - app-network
     restart: always
+    volumes:
+      - zookeeper_data:/data   # Задаём именованный том вместо анонимного
 
   # --- [KAFKA] ---
   kafka:
@@ -66,6 +68,8 @@ services:
     networks:
       - app-network
     restart: always
+    volumes:
+      - kafka_data:/kafka      # Аналогично для Kafka
 
   # --- [REDIS] ---
   redis:
@@ -76,10 +80,20 @@ services:
     networks:
       - app-network
     restart: always
+    volumes:
+      - redis_data:/data       # Redis по умолчанию имеет VOLUME /data
 
 volumes:
   postgres_master_data:
+    name: postgres_master_data
   postgres_replica_data:
+    name: postgres_replica_data
+  zookeeper_data:
+    name: zookeeper_data
+  kafka_data:
+    name: kafka_data
+  redis_data:
+    name: redis_data
 
 networks:
   app-network:

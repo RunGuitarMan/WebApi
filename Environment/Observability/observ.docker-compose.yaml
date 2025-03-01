@@ -5,6 +5,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     ports:
       - "9090:9090"
     networks:
@@ -17,6 +18,8 @@ services:
     image: grafana/grafana:latest
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
     ports:
       - "3000:3000"
     networks:
@@ -52,8 +55,6 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9093"
     ports:
       - "8123:8080"
-#    depends_on:
-#      - kafka
     networks:
       - app-network
     restart: always
@@ -62,12 +63,9 @@ services:
   kafka_exporter:
     container_name: webapi-kafka-exporter
     image: danielqsj/kafka-exporter:latest
-    # Указываем только аргумент, без полного пути к бинарю
     command: ["--kafka.server=kafka:9093"]
     ports:
       - "9308:9308"
-#    depends_on:
-#      - kafka
     networks:
       - app-network
     restart: always
@@ -80,8 +78,6 @@ services:
       DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_master:5432/example_db?sslmode=disable"
     ports:
       - "9187:9187"
-#    depends_on:
-#      - postgres_master
     networks:
       - app-network
     restart: always
@@ -94,8 +90,6 @@ services:
       DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_replica:5432/example_db?sslmode=disable"
     ports:
       - "9188:9187"
-#    depends_on:
-#      - postgres_replica
     networks:
       - app-network
     restart: always
@@ -106,11 +100,8 @@ services:
     image: oliver006/redis_exporter:latest
     environment:
       REDIS_ADDR: "redis://redis:6379"
-      # REDIS_PASSWORD: "some_password"
     ports:
       - "9121:9121"
-#    depends_on:
-#      - redis
     networks:
       - app-network
     restart: always
@@ -118,3 +109,9 @@ services:
 networks:
   app-network:
     external: true
+
+volumes:
+  prometheus_data:
+    name: prometheus_data
+  grafana_data:
+    name: grafana_data
