@@ -87,7 +87,7 @@ services:
     container_name: webapi-redis-exporter
     image: oliver006/redis_exporter:latest
     environment:
-      REDIS_ADDR: "redis://redis:6379"
+      REDIS_ADDR: "redis://valkey:6379"
     ports:
       - "9121:9121"
     networks:

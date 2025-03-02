@@ -6,8 +6,8 @@ using WebApi.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var serviceName = "MyApp";
-var jaegerEndpoint = "http://localhost:4317";
+const string serviceName = "MyApp";
+const string jaegerEndpoint = "http://localhost:4317";
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
@@ -30,7 +30,13 @@ builder.Services.AddOpenTelemetry()
             options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
         })
     );
-builder.Services.AddMemoryCache();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379";
+    options.InstanceName = serviceName;
+});
+
 builder.Services.AddPersistence();
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();

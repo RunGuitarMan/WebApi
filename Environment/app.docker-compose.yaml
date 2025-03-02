@@ -72,17 +72,17 @@ services:
     volumes:
       - kafka_data:/kafka
 
-  # --- [REDIS] ---
-  redis:
-    container_name: webapi-redis
-    image: redis:latest
+  # --- [VALKEY] ---
+  valkey:
+    container_name: webapi-valkey
+    image: valkey/valkey:latest
     ports:
       - "6379:6379"
     networks:
       - app-network
     restart: always
     volumes:
-      - redis_data:/data
+      - valkey_data:/data
 
 volumes:
   postgres_data:
@@ -91,8 +91,8 @@ volumes:
     name: zookeeper_data
   kafka_data:
     name: kafka_data
-  redis_data:
-    name: redis_data
+  valkey_data:
+    name: valkey_data
 
 networks:
   app-network:
