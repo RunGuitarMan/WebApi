@@ -11,8 +11,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Environment", "Environment", "{7961F353-2F50-422C-A208-CA54AE67DDDB}"
 	ProjectSection(SolutionItems) = preProject
 		Environment\app.docker-compose.yaml = Environment\app.docker-compose.yaml
-		Environment\init-master.sh = Environment\init-master.sh
-		Environment\init-replica.sh = Environment\init-replica.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Observability", "Observability", "{51A23865-2B41-4056-9E87-1C59F9729DAD}"

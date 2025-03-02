@@ -70,26 +70,14 @@ services:
       - app-network
     restart: always
 
-  # --- [POSTGRES EXPORTER for MASTER] ---
+  # --- [POSTGRES EXPORTER] ---
   postgres_exporter:
     container_name: webapi-postgres-exporter
     image: wrouesnel/postgres_exporter:latest
     environment:
-      DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_master:5432/example_db?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres:5432/example_db?sslmode=disable"
     ports:
       - "9187:9187"
-    networks:
-      - app-network
-    restart: always
-
-  # --- [POSTGRES EXPORTER for REPLICA] ---
-  postgres_replica_exporter:
-    container_name: webapi-postgres-replica-exporter
-    image: wrouesnel/postgres_exporter:latest
-    environment:
-      DATA_SOURCE_NAME: "postgresql://example_user:example_password@postgres_replica:5432/example_db?sslmode=disable"
-    ports:
-      - "9188:9187"
     networks:
       - app-network
     restart: always

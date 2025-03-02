@@ -2,24 +2,16 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
-  # Scrape самого Prometheus
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']
 
-  # Scrape Postgres Exporter (master)
   - job_name: 'postgres-exporter'
     static_configs:
       - targets: ['postgres_exporter:9187']
-
-  # Scrape Postgres Exporter (replica)
-  - job_name: 'postgres_replica_exporter'
-    static_configs:
-      - targets: ['postgres_replica_exporter:9187']
    
   - job_name: 'kafka-exporter'
     static_configs:
-      # Имя сервиса:порт = kafka_exporter:9308 внутри docker-сети
       - targets: ['kafka_exporter:9308']
 
   - job_name: 'redis-exporter'

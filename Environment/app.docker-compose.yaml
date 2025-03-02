@@ -1,7 +1,7 @@
 services:
-  # --- [POSTGRES MASTER] ---
-  postgres_master:
-    container_name: webapi-postgres-master
+  # --- [POSTGRES] ---
+  postgres:
+    container_name: webapi-postgres
     image: postgres:17
     environment:
       POSTGRES_USER: example_user
@@ -13,29 +13,7 @@ services:
       - app-network
     restart: always
     volumes:
-      - postgres_master_data:/var/lib/postgresql/data
-      - ./init-master.sh:/docker-entrypoint-initdb.d/init-master.sh
-      - ./init-master.sql:/docker-entrypoint-initdb.d/init-master.sql
-
-  # --- [POSTGRES REPLICA] ---
-  postgres_replica:
-    container_name: webapi-postgres-replica
-    image: postgres:17
-    environment:
-      POSTGRES_USER: example_user
-      POSTGRES_PASSWORD: example_password
-      POSTGRES_DB: example_db
-    depends_on:
-      - postgres_master
-    ports:
-      - "5433:5432"
-    networks:
-      - app-network
-    restart: always
-    volumes:
-      - postgres_replica_data:/var/lib/postgresql/data
-      - ./init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh
-      - ./init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
+      - postgres_data:/var/lib/postgresql/data
 
   # --- [ZOOKEEPER] ---
   zookeeper:
@@ -84,10 +62,8 @@ services:
       - redis_data:/data       # Redis по умолчанию имеет VOLUME /data
 
 volumes:
-  postgres_master_data:
-    name: postgres_master_data
-  postgres_replica_data:
-    name: postgres_replica_data
+  postgres_data:
+    name: postgres_data
   zookeeper_data:
     name: zookeeper_data
   kafka_data:
