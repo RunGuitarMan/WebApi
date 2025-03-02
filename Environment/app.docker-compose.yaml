@@ -15,6 +15,28 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # --- [PGBOUNCER] ---
+  pgbouncer:
+    container_name: webapi-pgbouncer
+    image: bitnami/pgbouncer:latest
+    environment:
+      - POSTGRESQL_HOST=postgres
+      - POSTGRESQL_PORT=5432
+      - PGBOUNCER_DATABASE=example_db
+      - POSTGRESQL_USERNAME=example_user
+      - POSTGRESQL_PASSWORD=example_password
+      - PGBOUNCER_LISTEN_PORT=6432
+      - PGBOUNCER_MAX_CLIENT_CONN=1000
+      - PGBOUNCER_DEFAULT_POOL_SIZE=20
+      - PGBOUNCER_POOL_MODE=transaction
+    ports:
+      - "6432:6432"
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+    restart: always
+
   # --- [ZOOKEEPER] ---
   zookeeper:
     container_name: webapi-zookeeper
@@ -28,7 +50,7 @@ services:
       - app-network
     restart: always
     volumes:
-      - zookeeper_data:/data   # Задаём именованный том вместо анонимного
+      - zookeeper_data:/data
 
   # --- [KAFKA] ---
   kafka:
@@ -47,7 +69,7 @@ services:
       - app-network
     restart: always
     volumes:
-      - kafka_data:/kafka      # Аналогично для Kafka
+      - kafka_data:/kafka
 
   # --- [REDIS] ---
   redis:
@@ -59,7 +81,7 @@ services:
       - app-network
     restart: always
     volumes:
-      - redis_data:/data       # Redis по умолчанию имеет VOLUME /data
+      - redis_data:/data
 
 volumes:
   postgres_data:
