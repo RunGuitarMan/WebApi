@@ -9,7 +9,8 @@ public class EntityService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IMemoryCache _memoryCache;
-
+    private const int CacheTtlSeconds = 600;
+    
     public EntityService(ApplicationDbContext dbContext, IMemoryCache memoryCache)
     {
         _dbContext = dbContext;
@@ -25,17 +26,17 @@ public class EntityService
         {
             return cachedEntity;
         }
-
+        
         var entity = await _dbContext.TestEntities
             .AsNoTracking()
             .SingleOrDefaultAsync(testEntity => testEntity.Id == id, cancellationToken);
-
+        
         if (entity == null)
         {
             return null;
         }
-
-        _memoryCache.Set(cacheKey, entity, TimeSpan.FromSeconds(300));
+        
+        _memoryCache.Set(cacheKey, entity, TimeSpan.FromSeconds(CacheTtlSeconds));
         
         return entity;
     }
@@ -47,21 +48,12 @@ public class EntityService
             Content = content
         };
         
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-        
         await _dbContext.TestEntities.AddAsync(entity, cancellationToken);
-
-        try
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+        await _dbContext.SaveChangesAsync(cancellationToken);
         
+        string cacheKey = $"TestEntity_{entity.Id}";
+        _memoryCache.Set(cacheKey, entity, TimeSpan.FromSeconds(CacheTtlSeconds));
+
         return entity;
     }
 }
