@@ -1,6 +1,7 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using WebApi.Application;
 using WebApi.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,12 +30,11 @@ builder.Services.AddOpenTelemetry()
             options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
         })
     );
-
+builder.Services.AddMemoryCache();
 builder.Services.AddPersistence();
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddMemoryCache();
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
