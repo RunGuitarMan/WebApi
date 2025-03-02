@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using WebApi.Domain;
 
 namespace WebApi.Persistence;
@@ -7,11 +8,16 @@ namespace WebApi.Persistence;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public const string ConnectionString =
-        "Host=localhost;Port=5432;Database=example_db;Username=example_user;Password=example_password";
+        "Host=localhost;Port=5432;Database=example_db;Username=example_user;Password=example_password;MinPoolSize=5;MaxPoolSize=99";
     public const string SchemaName = "example_schema";
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(ConnectionString);
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseNpgsql(ConnectionString);
+        }
+    }
     
     public DbSet<TestEntity> TestEntities { get; internal set; }
     
