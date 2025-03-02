@@ -74,7 +74,17 @@ public class EntityService
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(CacheTtlSeconds)
         };
-        await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(entity), cacheOptions, cancellationToken);
+        
+        var entityDto = new TestEntityProtoDto(entity);
+        
+        byte[] serializedData;
+        using (var memoryStream = new MemoryStream())
+        {
+            Serializer.Serialize(memoryStream, entityDto);
+            serializedData = memoryStream.ToArray();
+        }
+        
+        await _cache.SetAsync(cacheKey, serializedData, cacheOptions, cancellationToken);
 
         return entity;
     }
